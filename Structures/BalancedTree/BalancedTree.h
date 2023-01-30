@@ -1,10 +1,11 @@
+#pragma once
 #include <memory>
 #include <iostream>
 #include <string>
 namespace structures {
 	template <class T, class Y>
 	class BalancedTree {
-	public:
+	private:
 		class BalancedNode {
 		public:
 			typedef typename std::shared_ptr<BalancedNode> SP_BalancedNode;
@@ -37,7 +38,7 @@ namespace structures {
 			SP_BalancedNode rotateRight();
 			void dropRelations();
 			void print(int spacer) const;
-			~BalancedNode();
+			~BalancedNode() {}
 		};
 
 	private:
@@ -148,10 +149,10 @@ namespace structures {
 			m_leftChild->print(spacer);
 	}
 
-	template<class T, class Y>
-	BalancedTree<T, Y>::BalancedNode::~BalancedNode() {
-		std::cout << "Destruction of   " << m_key << std::endl;
-	}
+	//template<class T, class Y>
+	//BalancedTree<T, Y>::BalancedNode::~BalancedNode() {
+	//	std::cout << "Destruction of   " << m_key << std::endl;
+	//}
 
 
 
@@ -239,4 +240,4 @@ namespace structures {
 	BalancedTree<T, Y>::~BalancedTree() {
 		m_root->dropRelations();
 	}
-};
+}
