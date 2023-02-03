@@ -9,7 +9,6 @@ namespace structures {
 		class BalancedNode {
 		public:
 			typedef typename std::shared_ptr<BalancedNode> SP_BalancedNode;
-		private:
 			T m_key;
 			Y m_data;
 			int m_leftHeight;
@@ -20,18 +19,6 @@ namespace structures {
 		public:
 			BalancedNode(T key, Y data);
 			BalancedNode(T key, Y data, SP_BalancedNode leftChild, SP_BalancedNode rightChild);
-			T key() const { return m_key; }
-			Y data() const { return m_data; }
-			int leftHeight() const { return m_leftHeight; }
-			int rightHeight() const { return m_rightHeight; }
-			SP_BalancedNode leftChild() const { return m_leftChild; }
-			SP_BalancedNode rightChild() const { return m_rightChild; }
-			SP_BalancedNode parent() const { return m_parent; }
-			void incLeftHeight() { m_leftHeight++; }
-			void incRightHeight() { m_rightHeight++; }
-			void setParent(SP_BalancedNode par) { m_parent = par; }
-			void setLeftChild(SP_BalancedNode child) { m_leftChild = child; }
-			void setRightChild(SP_BalancedNode child) { m_rightChild = child; }
 			int maxHeight() { return m_leftHeight > m_rightHeight ? m_leftHeight : m_rightHeight; }
 			void updateHeight();
 			SP_BalancedNode rotateLeft();
@@ -46,13 +33,14 @@ namespace structures {
 	public:
 		BalancedTree() {}
 		bool insert(T key, Y data);
-		Y search(T key) const;
-		bool erase(T key) {}
+		Y& search(T key);
 		void rotateRight(std::shared_ptr<BalancedNode> node);
 		void rotateLeft(std::shared_ptr<BalancedNode> node);
 		void rebalance(std::shared_ptr<BalancedNode> node);
 		bool empty() { return m_root; }
 		void print() { m_root->print(0); }
+		const Y& operator [](T key) const;
+		Y& operator [](T key);
 		~BalancedTree();
 	};
 
@@ -79,24 +67,24 @@ namespace structures {
 	std::shared_ptr<typename BalancedTree<T, Y>::BalancedNode> BalancedTree<T, Y>::BalancedNode::rotateLeft() {
 		BalancedNode::SP_BalancedNode parent = m_parent;
 		BalancedNode::SP_BalancedNode substitude = m_rightChild;
-		BalancedNode::SP_BalancedNode thisNode = m_rightChild->parent();
+		BalancedNode::SP_BalancedNode thisNode = m_rightChild->m_parent;
 
 
-		substitude->setParent(parent);
-		m_rightChild = substitude->leftChild();
+		substitude->m_parent = parent;
+		m_rightChild = substitude->m_leftChild;
 		if (m_rightChild)
-			m_rightChild->setParent(thisNode);
-		substitude->setLeftChild(thisNode);
+			m_rightChild->m_parent = thisNode;
+		substitude->m_leftChild = thisNode;
 		m_parent = substitude;
 
 		if (parent) {
-			if (parent->leftChild() == thisNode)
-				parent->setLeftChild(substitude);
+			if (parent->m_leftChild == thisNode)
+				parent->m_leftChild = substitude;
 			else
-				parent->setRightChild(substitude);
+				parent->m_rightChild = substitude;
 		}
 
-		m_rightHeight = substitude->leftHeight();
+		m_rightHeight = substitude->m_leftHeight;
 		substitude->m_leftHeight = maxHeight() + 1;
 		substitude->updateHeight();
 		return substitude;
@@ -106,23 +94,23 @@ namespace structures {
 	typename BalancedTree<T, Y>::BalancedNode::SP_BalancedNode BalancedTree<T, Y>::BalancedNode::rotateRight() {
 		BalancedNode::SP_BalancedNode parent = m_parent;
 		BalancedNode::SP_BalancedNode substitude = m_leftChild;
-		BalancedNode::SP_BalancedNode thisNode = m_leftChild->parent();
+		BalancedNode::SP_BalancedNode thisNode = m_leftChild->m_parent;
 
-		substitude->setParent(parent);
-		m_leftChild = substitude->rightChild();
+		substitude->m_parent = parent;
+		m_leftChild = substitude->m_rightChild;
 		if (m_leftChild)
-			m_leftChild->setParent(thisNode);
-		substitude->setRightChild(thisNode);
+			m_leftChild->m_parent = thisNode;
+		substitude->m_rightChild = thisNode;
 		m_parent = substitude;
 
 		if (parent) {
-			if (parent->leftChild() == thisNode)
-				parent->setLeftChild(substitude);
+			if (parent->m_leftChild == thisNode)
+				parent->m_leftChild = substitude;
 			else
-				parent->setRightChild(substitude);
+				parent->m_rightChild = substitude;
 		}
 
-		m_leftHeight = substitude->rightHeight();
+		m_leftHeight = substitude->m_rightHeight;
 		substitude->m_rightHeight = maxHeight() + 1;
 		substitude->updateHeight();
 		return substitude;
@@ -139,7 +127,7 @@ namespace structures {
 
 	template<class T, class Y>
 	void BalancedTree<T, Y>::BalancedNode::print(int spacer) const {
-		spacer++;
+		++spacer;
 		if (m_rightChild)
 			m_rightChild->print(spacer);
 		std::string space(2 * (spacer - 1), ' ');
@@ -168,22 +156,22 @@ namespace structures {
 		std::shared_ptr<BalancedNode> leaf = node;
 		while (node) {
 			leaf = node;
-			if (node->key() == key)
+			if (node->m_key == key)
 				return false;
-			if (node->key() > key)
-				node = node->leftChild();
+			if (node->m_key > key)
+				node = node->m_leftChild;
 			else
-				node = node->rightChild();
+				node = node->m_rightChild;
 		}
-		if (leaf->key() > key) {
-			leaf->setLeftChild(newNode);
-			newNode->setParent(leaf);
-			leaf->incLeftHeight();
+		if (leaf->m_key > key) {
+			leaf->m_leftChild = newNode;
+			newNode->m_parent = leaf;
+			++leaf->m_leftHeight;
 		}
 		else {
-			leaf->setRightChild(newNode);
-			newNode->setParent(leaf);
-			leaf->incRightHeight();
+			leaf->m_rightChild = newNode;
+			newNode->m_parent = leaf;
+			++leaf->m_rightHeight;
 		}
 		newNode->updateHeight();
 		rebalance(newNode);
@@ -191,16 +179,16 @@ namespace structures {
 	}
 
 	template<class T, class Y>
-	Y BalancedTree<T, Y>::search(T key) const {
+	Y& BalancedTree<T, Y>::search(T key) {
 		std::shared_ptr<BalancedNode> node = m_root;
-		while (node && node->key() != key) {
-			if (node->key() < key)
-				node = node->leftChild();
+		while (node && node->m_key != key) {
+			if (key < node->m_key)
+				node = node->m_leftChild;
 			else
-				node = node->rightChild();
+				node = node->m_rightChild;
 		}
 		if (node)
-			return node->data();
+			return node->m_data;
 		throw std::exception("Data not found");
 	}
 
@@ -221,18 +209,38 @@ namespace structures {
 	template<class T, class Y>
 	void BalancedTree<T, Y>::rebalance(std::shared_ptr<BalancedNode> node) {
 		while (node) {
-			int dif = node->rightHeight() - node->leftHeight();
+			int dif = node->m_rightHeight - node->m_leftHeight;
 			if (dif > 1) {
-				if (node->rightChild() && node->rightChild()->leftHeight() > node->rightChild()->rightHeight())
-					rotateRight(node->rightChild());
+				if (node->m_rightChild && node->m_rightChild->m_leftHeight > node->m_rightChild->m_rightHeight)
+					rotateRight(node->m_rightChild);
 				rotateLeft(node);
 			}
 			if (dif < -1) {
-				if (node->leftChild() && node->leftChild()->rightHeight() > node->leftChild()->leftHeight())
-					rotateLeft(node->leftChild());
+				if (node->m_leftChild && node->m_leftChild->m_rightHeight > node->m_leftChild->m_leftHeight)
+					rotateLeft(node->m_leftChild);
 				rotateRight(node);
 			}
-			node = node->parent();
+			node = node->m_parent;
+		}
+	}
+
+	template<class T, class Y>
+	const Y& structures::BalancedTree<T, Y>::operator[](T key) const {
+		try {
+			return search(key);
+		}
+		catch (std::exception& e) {
+			throw e;
+		}
+	}
+
+	template<class T, class Y>
+	Y& BalancedTree<T, Y>::operator[](T key) {
+		try {
+			return search(key);
+		}
+		catch (std::exception& e) {
+			throw e;
 		}
 	}
 
