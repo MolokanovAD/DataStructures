@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <iostream>
-#include <string>
 namespace structures {
 	template <class T, class Y>
 	class BalancedTree {
@@ -37,7 +36,7 @@ namespace structures {
 		void rotateRight(std::shared_ptr<BalancedNode> node);
 		void rotateLeft(std::shared_ptr<BalancedNode> node);
 		void rebalance(std::shared_ptr<BalancedNode> node);
-		bool empty() { return m_root; }
+		bool empty() { return !m_root.get(); }
 		void print() { m_root->print(0); }
 		const Y& operator [](T key) const;
 		Y& operator [](T key);
@@ -136,14 +135,6 @@ namespace structures {
 		if (m_leftChild)
 			m_leftChild->print(spacer);
 	}
-
-	//template<class T, class Y>
-	//BalancedTree<T, Y>::BalancedNode::~BalancedNode() {
-	//	std::cout << "Destruction of   " << m_key << std::endl;
-	//}
-
-
-
 
 	template<class T, class Y>
 	bool BalancedTree<T, Y>::insert(T key, Y data) {
